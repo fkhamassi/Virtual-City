@@ -1,0 +1,10 @@
+Ville:VirtualCity
+Budget:984
+Population:0
+Satisfaction:100
+Eau:941
+Electricite:1029
+Batiments:3
+Maison|1|Maison Centre|7.5|4.5|2|M|6|0
+Usine|2|Usine Electrique|20|30|-5|U|50|10
+Parc|3|Parc Central|2|1|12|P|200|12
