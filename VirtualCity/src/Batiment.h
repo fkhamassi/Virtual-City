@@ -4,7 +4,7 @@
 #include <string>
 #include <iostream>
 
-using namespace std; // demandé par l'utilisateur : rend le code plus lisible pour un débutant
+using namespace std; // Rend le code plus lisible et simplifie la syntaxe
 
 // Classe de base représentant un bâtiment générique
 class Batiment {

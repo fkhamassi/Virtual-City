@@ -1,0 +1,10 @@
+release/main.o
+release/mainwindow.o
+release/Batiment.o
+release/Maison.o
+release/Parc.o
+release/Service.o
+release/Usine.o
+release/Ville.o
+release/Simulation.o
+release/moc_mainwindow.o

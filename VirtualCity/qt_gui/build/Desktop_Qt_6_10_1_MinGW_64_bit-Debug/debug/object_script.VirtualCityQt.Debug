@@ -1,0 +1,10 @@
+debug/main.o
+debug/mainwindow.o
+debug/Batiment.o
+debug/Maison.o
+debug/Parc.o
+debug/Service.o
+debug/Usine.o
+debug/Ville.o
+debug/Simulation.o
+debug/moc_mainwindow.o

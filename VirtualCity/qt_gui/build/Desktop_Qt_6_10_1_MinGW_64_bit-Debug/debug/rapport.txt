@@ -1,0 +1,17 @@
+Rapport de la ville: MaVille
+
+Budget: 6500
+Population: 0
+Satisfaction: -10
+Ressources - Eau: 817.5, Electricite: 862.5
+
+Batiments (resume):
+- [Maison] Dar Khamassi (ID:2)
+- [Maison] Dar Bennour (ID:3)
+- [Usine] Delice (ID:4)
+- [Service] Service Nettoyage (ID:3001)
+- [Service] Service Nettoyage (ID:3002)
+- [Service] Service Nettoyage (ID:3003)
+- [Service] Service Nettoyage (ID:3004)
+
+Evenements: (historique non disponible dans cette version)
