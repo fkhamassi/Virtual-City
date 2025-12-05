@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SERVICE_H
+#define SERVICE_H
 
 #include "Batiment.h"
 
@@ -16,3 +17,5 @@ public:
 
     void afficherDetails() const override;
 };
+
+#endif

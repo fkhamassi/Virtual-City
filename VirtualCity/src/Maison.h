@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MAISON_H
+#define MAISON_H
 
 #include "Batiment.h"
 
@@ -20,3 +21,5 @@ public:
     // Réimplémentation pour afficher plus de détails
     void afficherDetails() const override;
 };
+
+#endif

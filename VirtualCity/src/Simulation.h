@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SIMULATION_H
+#define SIMULATION_H
 
 #include <vector>
 #include <string>
@@ -28,3 +29,5 @@ public:
     // Déclenche un événement aléatoire qui affecte la ville
     void declencherEvenement();
 };
+
+#endif

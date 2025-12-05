@@ -1,4 +1,5 @@
-#pragma once
+#ifndef VILLE_H
+#define VILLE_H
 
 #include <vector>
 #include <algorithm>
@@ -54,3 +55,5 @@ public:
     // Affiche l'état de la ville
     void afficherEtat() const;
 };
+
+#endif

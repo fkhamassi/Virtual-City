@@ -1,4 +1,5 @@
-#pragma once
+#ifndef USINE_H
+#define USINE_H
 
 #include "Batiment.h"
 
@@ -18,3 +19,5 @@ public:
 
     void afficherDetails() const override;
 };
+
+#endif

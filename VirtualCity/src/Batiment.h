@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BATIMENT_H
+#define BATIMENT_H
 
 #include <string>
 #include <iostream>
@@ -30,3 +31,5 @@ public:
     // Retourne une paire (eau, electricite)
     virtual pair<double,double> calculerImpactRessources() const;
 };
+
+#endif

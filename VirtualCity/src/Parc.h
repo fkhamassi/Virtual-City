@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PARC_H
+#define PARC_H
 
 #include "Batiment.h"
 
@@ -17,3 +18,5 @@ public:
 
     void afficherDetails() const override;
 };
+
+#endif
