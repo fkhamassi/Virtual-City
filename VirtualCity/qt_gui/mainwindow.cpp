@@ -3,6 +3,8 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QFileDialog>
+#include <QMenu>
+#include <QAction>
 #include <sstream>
 
 // Inclusion des classes de bâtiments
@@ -38,6 +40,20 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnGenererRapport, &QPushButton::clicked, this, &MainWindow::genererRapport);
     connect(ui->btnCharger, &QPushButton::clicked, this, &MainWindow::chargerVille);
     
+        // Interactions liste (aucune modification du .ui requise)
+        connect(ui->listWidgetBatiments, &QListWidget::itemDoubleClicked,
+            this, &MainWindow::onBatimentDoubleClique);
+        ui->listWidgetBatiments->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(ui->listWidgetBatiments, &QListWidget::customContextMenuRequested,
+            this, &MainWindow::afficherMenuContexteBatiment);
+        connect(ui->listWidgetBatiments, &QListWidget::currentRowChanged,
+            this, [this](int){ mettreAJourDetailsSelection(); });
+    
+        // Menubar runtime (pas de changement .ui) pour ajouter un Service
+        auto menuBat = menuBar()->addMenu("Bâtiments");
+        QAction* actionAjouterService = menuBat->addAction("Ajouter Service...");
+        connect(actionAjouterService, &QAction::triggered, this, &MainWindow::ajouterService);
+    
     // Affichage initial
     mettreAJourAffichage();
     ajouterLog("Bienvenue dans VirtualCity!");
@@ -51,7 +67,24 @@ MainWindow::~MainWindow()
 void MainWindow::afficherEtatVille()
 {
     mettreAJourAffichage();
-    ajouterLog("État de la ville mis à jour.");
+
+    // Afficher un récapitulatif détaillé de chaque bâtiment
+    QString info;
+    info += QString("Ville: %1\nBudget: %2  |  Eau: %3  |  Élec: %4\nPopulation: %5  |  Satisfaction: %6\n\n")
+                .arg(QString::fromStdString(ville->nom))
+                .arg(ville->budget, 0, 'f', 2)
+                .arg(ville->ressourcesEau, 0, 'f', 1)
+                .arg(ville->ressourcesElectricite, 0, 'f', 1)
+                .arg(ville->population)
+                .arg(ville->satisfaction, 0, 'f', 1);
+
+    info += QString("Bâtiments (%1):\n").arg(ville->batiments.size());
+    for (const auto& b : ville->batiments) {
+        info += detailsBatiment(b.get());
+        info += "\n";
+    }
+    QMessageBox::information(this, "État de la ville", info);
+    ajouterLog("État de la ville affiché.");
 }
 
 void MainWindow::lancerCycle()
@@ -224,6 +257,9 @@ void MainWindow::mettreAJourAffichage()
     
     // Nombre de bâtiments
     ui->labelNbBatiments->setText(QString("Bâtiments: %1").arg(ville->batiments.size()));
+    
+    // Message court sur la sélection
+    mettreAJourDetailsSelection();
 }
 
 void MainWindow::ajouterLog(const QString& message)
@@ -236,10 +272,247 @@ void MainWindow::rafraichirListeBatiments()
     ui->listWidgetBatiments->clear();
     
     for (const auto& bat : ville->batiments) {
-        QString info = QString("ID:%1 | %2 - %3")
-                          .arg(bat->id)
-                          .arg(QString::fromStdString(bat->type))
-                          .arg(QString::fromStdString(bat->nom));
-        ui->listWidgetBatiments->addItem(info);
+        QString base = QString("ID:%1 | %2 - %3")
+                           .arg(bat->id)
+                           .arg(QString::fromStdString(bat->type))
+                           .arg(QString::fromStdString(bat->nom));
+
+        if (auto m = dynamic_cast<const Maison*>(bat.get())) {
+            base += QString(" | cap %1, hab %2")
+                        .arg(m->capaciteHabitants)
+                        .arg(m->habitantsActuels);
+        } else if (auto u = dynamic_cast<const Usine*>(bat.get())) {
+            base += QString(" | prod %1, poll %2")
+                        .arg(u->productionRessources, 0, 'f', 1)
+                        .arg(u->pollution, 0, 'f', 1);
+        } else if (auto p = dynamic_cast<const Parc*>(bat.get())) {
+            base += QString(" | surf %1, effet %2")
+                        .arg(p->surface, 0, 'f', 1)
+                        .arg(p->effetBienEtre, 0, 'f', 1);
+        } else if (auto s = dynamic_cast<const Service*>(bat.get())) {
+            base += QString(" | coût ent. %1")
+                        .arg(s->coutEntretien, 0, 'f', 1);
+        }
+        ui->listWidgetBatiments->addItem(base);
+    }
+}
+
+// ===== Helpers d'affichage et sélection =====
+QString MainWindow::detailsBatiment(const Batiment* b) const
+{
+    if (!b) return "";
+    QString d;
+    d += QString("- [ID:%1] %2 - %3\n")
+             .arg(b->id)
+             .arg(QString::fromStdString(b->type))
+             .arg(QString::fromStdString(b->nom));
+    d += QString("    Conso: eau %1, élec %2 | Effet sat: %3\n")
+             .arg(b->consommationEau, 0, 'f', 1)
+             .arg(b->consommationElectricite, 0, 'f', 1)
+             .arg(b->effetSatisfaction, 0, 'f', 1);
+
+    if (auto m = dynamic_cast<const Maison*>(b)) {
+        d += QString("    Maison: capacité %1, habitants %2\n")
+                 .arg(m->capaciteHabitants)
+                 .arg(m->habitantsActuels);
+    } else if (auto u = dynamic_cast<const Usine*>(b)) {
+        d += QString("    Usine: production %1, pollution %2\n")
+                 .arg(u->productionRessources, 0, 'f', 1)
+                 .arg(u->pollution, 0, 'f', 1);
+    } else if (auto p = dynamic_cast<const Parc*>(b)) {
+        d += QString("    Parc: surface %1, effet bien-être %2\n")
+                 .arg(p->surface, 0, 'f', 1)
+                 .arg(p->effetBienEtre, 0, 'f', 1);
+    } else if (auto s = dynamic_cast<const Service*>(b)) {
+        d += QString("    Service: coût entretien %1\n")
+                 .arg(s->coutEntretien, 0, 'f', 1);
+    }
+    return d;
+}
+
+QString MainWindow::resumeCourtBatiment(const Batiment* b) const
+{
+    if (!b) return "";
+    QString r = QString("%1 - %2 (ID:%3)")
+                    .arg(QString::fromStdString(b->type))
+                    .arg(QString::fromStdString(b->nom))
+                    .arg(b->id);
+    if (auto m = dynamic_cast<const Maison*>(b)) {
+        r += QString(" | hab: %1/%2")
+                 .arg(m->habitantsActuels)
+                 .arg(m->capaciteHabitants);
+    } else if (auto u = dynamic_cast<const Usine*>(b)) {
+        r += QString(" | prod: %1, poll: %2")
+                 .arg(u->productionRessources, 0, 'f', 1)
+                 .arg(u->pollution, 0, 'f', 1);
+    } else if (auto p = dynamic_cast<const Parc*>(b)) {
+        r += QString(" | surf: %1, effet: %2")
+                 .arg(p->surface, 0, 'f', 1)
+                 .arg(p->effetBienEtre, 0, 'f', 1);
+    } else if (auto s = dynamic_cast<const Service*>(b)) {
+        r += QString(" | coût ent.: %1")
+                 .arg(s->coutEntretien, 0, 'f', 1);
+    }
+    return r;
+}
+
+int MainWindow::indexSelectionBatiment() const
+{
+    auto item = ui->listWidgetBatiments->currentItem();
+    if (!item) return -1;
+    return ui->listWidgetBatiments->row(item);
+}
+
+Maison* MainWindow::maisonSelectionnee() const
+{
+    int idx = indexSelectionBatiment();
+    if (idx < 0 || idx >= static_cast<int>(ville->batiments.size())) return nullptr;
+    return dynamic_cast<Maison*>(ville->batiments[idx].get());
+}
+
+Service* MainWindow::serviceSelectionne() const
+{
+    int idx = indexSelectionBatiment();
+    if (idx < 0 || idx >= static_cast<int>(ville->batiments.size())) return nullptr;
+    return dynamic_cast<Service*>(ville->batiments[idx].get());
+}
+
+void MainWindow::mettreAJourDetailsSelection()
+{
+    int idx = indexSelectionBatiment();
+    if (idx >= 0 && idx < static_cast<int>(ville->batiments.size())) {
+        Batiment* b = ville->batiments[idx].get();
+        statusBar()->showMessage(resumeCourtBatiment(b));
+    } else {
+        statusBar()->clearMessage();
+    }
+}
+
+// ===== Interactions =====
+void MainWindow::onBatimentDoubleClique(QListWidgetItem* item)
+{
+    if (!item) return;
+    int idx = ui->listWidgetBatiments->row(item);
+    if (idx < 0 || idx >= static_cast<int>(ville->batiments.size())) return;
+
+    Batiment* b = ville->batiments[idx].get();
+    QMessageBox::information(this, "Détails du bâtiment", detailsBatiment(b));
+
+    if (auto m = dynamic_cast<Maison*>(b)) {
+        // Proposer d'ajouter/retirer des habitants
+        QStringList options = {"Ajouter", "Retirer", "Annuler"};
+        bool ok = false;
+        QString choix = QInputDialog::getItem(this, "Habitants",
+                                              "Action:", options, 2, false, &ok);
+        if (ok && (choix == "Ajouter" || choix == "Retirer")) {
+            int nb = QInputDialog::getInt(this, "Nombre",
+                                          "Nombre d'habitants:", 1, 1, 1000, 1, &ok);
+            if (ok) {
+                if (choix == "Ajouter") m->ajouterHabitants(nb);
+                else m->retirerHabitants(nb);
+                mettreAJourAffichage();
+                rafraichirListeBatiments();
+                ajouterLog(QString("Maison mise à jour: %1 habitants.").arg(m->habitantsActuels));
+            }
+        }
+    }
+}
+
+void MainWindow::afficherMenuContexteBatiment(const QPoint& pos)
+{
+    QPoint globalPos = ui->listWidgetBatiments->viewport()->mapToGlobal(pos);
+    auto item = ui->listWidgetBatiments->itemAt(pos);
+    QMenu menu;
+    QAction* actDetails = menu.addAction("Afficher détails");
+    QAction* actAjouter = nullptr;
+    QAction* actRetirer = nullptr;
+    QAction* actAjouterService = menu.addAction("Ajouter Service...");
+    QAction* actActiverService = menu.addAction("Activer Service (effet)");
+
+    int idx = -1;
+    if (item) {
+        idx = ui->listWidgetBatiments->row(item);
+        if (idx >= 0 && idx < static_cast<int>(ville->batiments.size())) {
+            if (dynamic_cast<Maison*>(ville->batiments[idx].get())) {
+                actAjouter = menu.addAction("Ajouter habitants...");
+                actRetirer = menu.addAction("Retirer habitants...");
+            }
+        }
+    }
+
+    QAction* chosen = menu.exec(globalPos);
+    if (!chosen) return;
+    if (chosen == actDetails && item) {
+        onBatimentDoubleClique(item);
+    } else if (chosen == actAjouter) {
+        ajouterHabitantsMaison();
+    } else if (chosen == actRetirer) {
+        retirerHabitantsMaison();
+    } else if (chosen == actAjouterService) {
+        ajouterService();
+    } else if (chosen == actActiverService) {
+        activerServiceSelectionne();
+    }
+}
+
+void MainWindow::ajouterHabitantsMaison()
+{
+    if (Maison* m = maisonSelectionnee()) {
+        bool ok = false;
+        int nb = QInputDialog::getInt(this, "Ajouter habitants",
+                                      "Nombre d'habitants à ajouter:", 1, 1, 1000, 1, &ok);
+        if (ok) {
+            m->ajouterHabitants(nb);
+            mettreAJourAffichage();
+            rafraichirListeBatiments();
+            ajouterLog(QString("Ajout de %1 habitants (total: %2)").arg(nb).arg(m->habitantsActuels));
+        }
+    }
+}
+
+void MainWindow::retirerHabitantsMaison()
+{
+    if (Maison* m = maisonSelectionnee()) {
+        bool ok = false;
+        int nb = QInputDialog::getInt(this, "Retirer habitants",
+                                      "Nombre d'habitants à retirer:", 1, 1, 1000, 1, &ok);
+        if (ok) {
+            m->retirerHabitants(nb);
+            mettreAJourAffichage();
+            rafraichirListeBatiments();
+            ajouterLog(QString("Retrait de %1 habitants (total: %2)").arg(nb).arg(m->habitantsActuels));
+        }
+    }
+}
+
+void MainWindow::ajouterService()
+{
+    bool ok;
+    QString nom = QInputDialog::getText(this, "Nouveau Service",
+                                       "Nom du service:", QLineEdit::Normal,
+                                       QString("Service_%1").arg(prochainId), &ok);
+    if (ok && !nom.isEmpty()) {
+        double cout = 400.0;
+        if (ville->budget >= cout) {
+            auto serv = std::make_unique<Service>(prochainId++, nom.toStdString(), 8.0, 5.0);
+            ville->construireBatiment(std::move(serv), cout);
+            mettreAJourAffichage();
+            rafraichirListeBatiments();
+            ajouterLog(QString("Service '%1' ajouté.").arg(nom));
+        } else {
+            QMessageBox::warning(this, "Budget insuffisant",
+                                 QString("Coût: %1€, Budget: %2€").arg(cout).arg(ville->budget));
+        }
+    }
+}
+
+void MainWindow::activerServiceSelectionne()
+{
+    if (Service* s = serviceSelectionne()) {
+        double effet = s->fournirService();
+        ville->satisfaction += effet;
+        if (ville->satisfaction > 100.0) ville->satisfaction = 100.0;
+        mettreAJourAffichage();
+        ajouterLog(QString("Service activé: +%1 sat").arg(effet, 0, 'f', 1));
     }
 }
