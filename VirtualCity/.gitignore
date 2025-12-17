@@ -1,0 +1,32 @@
+# Qt build outputs
+qt_gui/build/
+**/debug/
+**/release/
+*.user
+*.pro.user
+*.qmake.stash
+
+# Compiled binaries and libs
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.obj
+*.o
+*.a
+*.lib
+
+# Generated UI/moc (kept in build dirs anyway)
+moc_*
+ui_*.h
+
+# Logs and system files
+*.log
+.DS_Store
+Thumbs.db
+
+# QtCreator local settings
+qt_gui/.qtcreator/
+
+# VS Code settings (keep project settings tracked; comment out to ignore)
+# .vscode/
