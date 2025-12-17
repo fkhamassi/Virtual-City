@@ -28,6 +28,11 @@ MainWindow::MainWindow(QWidget *parent)
     
     simulation = std::make_unique<Simulation>(ville.get());
     
+    // Ajouter quelques bâtiments de démonstration (comme dans la version console)
+    ville->ajouterBatiment(std::make_unique<Maison>(1, "Maison Centre", 6));
+    ville->ajouterBatiment(std::make_unique<Usine>(2, "Usine Electrique", 50.0, 10.0));
+    ville->ajouterBatiment(std::make_unique<Parc>(3, "Parc Central", 200.0, 12.0));
+
     // Connexion des boutons aux slots
     connect(ui->btnAfficherEtat, &QPushButton::clicked, this, &MainWindow::afficherEtatVille);
     connect(ui->btnLancerCycle, &QPushButton::clicked, this, &MainWindow::lancerCycle);
@@ -39,6 +44,18 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnSauvegarder, &QPushButton::clicked, this, &MainWindow::sauvegarderVille);
     connect(ui->btnGenererRapport, &QPushButton::clicked, this, &MainWindow::genererRapport);
     connect(ui->btnCharger, &QPushButton::clicked, this, &MainWindow::chargerVille);
+    // Nouveaux boutons visibles dans l'UI
+    connect(ui->btnAjouterService, &QPushButton::clicked, this, &MainWindow::ajouterService);
+    connect(ui->btnActiverService, &QPushButton::clicked, this, &MainWindow::activerServiceSelectionne);
+    connect(ui->btnAjouterHabitants, &QPushButton::clicked, this, &MainWindow::ajouterHabitantsMaison);
+    connect(ui->btnRetirerHabitants, &QPushButton::clicked, this, &MainWindow::retirerHabitantsMaison);
+    connect(ui->btnAfficherDetails, &QPushButton::clicked, this, [this]() {
+        int idx = indexSelectionBatiment();
+        if (idx >= 0 && idx < static_cast<int>(ville->batiments.size())) {
+            Batiment* b = ville->batiments[idx].get();
+            QMessageBox::information(this, "Détails du bâtiment", detailsBatiment(b));
+        }
+    });
     
         // Interactions liste (aucune modification du .ui requise)
         connect(ui->listWidgetBatiments, &QListWidget::itemDoubleClicked,
@@ -56,6 +73,7 @@ MainWindow::MainWindow(QWidget *parent)
     
     // Affichage initial
     mettreAJourAffichage();
+    rafraichirListeBatiments();
     ajouterLog("Bienvenue dans VirtualCity!");
 }
 
@@ -382,9 +400,12 @@ void MainWindow::mettreAJourDetailsSelection()
     int idx = indexSelectionBatiment();
     if (idx >= 0 && idx < static_cast<int>(ville->batiments.size())) {
         Batiment* b = ville->batiments[idx].get();
-        statusBar()->showMessage(resumeCourtBatiment(b));
+        const QString resume = resumeCourtBatiment(b);
+        statusBar()->showMessage(resume);
+        if (ui->labelSelectedInfo) ui->labelSelectedInfo->setText("Sélection: " + resume);
     } else {
         statusBar()->clearMessage();
+        if (ui->labelSelectedInfo) ui->labelSelectedInfo->setText("Sélection: (aucune)");
     }
 }
 

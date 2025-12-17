@@ -207,6 +207,41 @@
          </property>
         </widget>
        </item>
+             <item row="4" column="0">
+                <widget class="QPushButton" name="btnAjouterService">
+                 <property name="text">
+                    <string>Ajouter Service</string>
+                 </property>
+                </widget>
+             </item>
+             <item row="4" column="1">
+                <widget class="QPushButton" name="btnAfficherDetails">
+                 <property name="text">
+                    <string>Afficher Détails</string>
+                 </property>
+                </widget>
+             </item>
+                <item row="4" column="2">
+                <widget class="QPushButton" name="btnActiverService">
+                 <property name="text">
+                    <string>Activer Service</string>
+                 </property>
+                </widget>
+             </item>
+             <item row="5" column="0">
+                <widget class="QPushButton" name="btnAjouterHabitants">
+                 <property name="text">
+                    <string>Ajouter Habitants</string>
+                 </property>
+                </widget>
+             </item>
+             <item row="5" column="1">
+                <widget class="QPushButton" name="btnRetirerHabitants">
+                 <property name="text">
+                    <string>Retirer Habitants</string>
+                 </property>
+                </widget>
+             </item>
       </layout>
      </widget>
     </item>
@@ -218,6 +253,22 @@
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <widget class="QListWidget" name="listWidgetBatiments"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBoxSelection">
+      <property name="title">
+       <string>Détails de la Sélection</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <widget class="QLabel" name="labelSelectedInfo">
+         <property name="text">
+          <string>Sélection: (aucune)</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
