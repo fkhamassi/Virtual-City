@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QTimer>
+#include <QListWidgetItem>
+#include <QPoint>
 #include <memory>
 #include "Ville.h"
 #include "Simulation.h"
@@ -27,10 +29,18 @@ private slots:
     void ajouterMaison();
     void ajouterUsine();
     void ajouterParc();
+    void ajouterService();
     void supprimerBatiment();
     void sauvegarderVille();
     void genererRapport();
     void chargerVille();
+
+    // Interactions liste
+    void onBatimentDoubleClique(QListWidgetItem* item);
+    void afficherMenuContexteBatiment(const QPoint& pos);
+    void ajouterHabitantsMaison();
+    void retirerHabitantsMaison();
+    void activerServiceSelectionne();
 
 private:
     Ui::MainWindow *ui;
@@ -45,6 +55,12 @@ private:
     void mettreAJourAffichage();
     void ajouterLog(const QString& message);
     void rafraichirListeBatiments();
+    QString detailsBatiment(const Batiment* b) const;
+    QString resumeCourtBatiment(const Batiment* b) const;
+    int indexSelectionBatiment() const;
+    Maison* maisonSelectionnee() const;
+    Service* serviceSelectionne() const;
+    void mettreAJourDetailsSelection();
 };
 
 #endif // MAINWINDOW_H
